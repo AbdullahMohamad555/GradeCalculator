@@ -1,0 +1,55 @@
+name: Flutter CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  test:
+    name:  Test & Analyze
+    runs-on: ubuntu-latest
+    steps:
+      - name:  Checkout code
+        uses: actions/checkout@v3
+
+      - name:  Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.13.x'
+          channel: 'stable'
+
+      - name:  Install dependencies
+        run: flutter pub get
+
+      - name:  Analyze code
+        run: flutter analyze
+
+      - name:  Run unit tests
+        run: flutter test
+
+  build:
+    name:  Build APK
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name:  Checkout code
+        uses: actions/checkout@v3
+
+      - name:  Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.13.x'
+
+      - name:  Install dependencies
+        run: flutter pub get
+
+      - name:  Build APK
+        run: flutter build apk --release
+
+      - name:  Upload APK
+        uses: actions/upload-artifact@v3
+        with:
+          name: release-apk
+          path: build/app/outputs/flutter-apk/app-release.apk
